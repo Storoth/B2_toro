@@ -17,22 +17,6 @@ dp = Dispatcher(bot, storage= MemoryStorage())
 
 baza = {}
 
-
-'''
-
-baza2 = {
-    'user_id' : {
-        'name' : {
-            'description': description,
-            'deadline': deadline,
-            'frequency': notification
-            },
-        },
-    }
-'''
-
-
-
 class state_baza(StatesGroup):
     name = State()
     description = State()
@@ -44,6 +28,9 @@ class state_baza(StatesGroup):
 async def start(message:types.Message, state: FSMContext):
     await state.finish()
     await bot.send_message(message.chat.id, f'Hi {message.chat.full_name}', reply_markup=klava)
+    task_id = 1
+    async with state.proxy() as data:
+        data['task_id'] = task_id
 
 
 @dp.message_handler(text= '> CREATE <', state='*')
@@ -79,7 +66,11 @@ async def list_task(message:types.Message, state: FSMContext):
 async def save_name(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     name = message.text
-    task_id = 1
+    
+    task_id = None
+    async with state.proxy() as data:
+        task_id = data['task_id']
+
     
     if user_id not in baza:
         baza[user_id] = {}
@@ -103,6 +94,11 @@ async def save_name(message: types.message, state: FSMContext):
 async def save_description(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     description = message.text
+    
+    task_id = None
+    async with state.proxy() as data:
+        task_id = data['task_id']
+    
     baza[user_id][task_id]['description'] = description
     await bot.send_message(message.chat.id, f'description "{baza[user_id][task_id]['description']}" is saved')
     await state_baza.next()
@@ -112,6 +108,10 @@ async def save_description(message: types.message, state: FSMContext):
 @dp.message_handler(state= state_baza.deadline)
 async def save_deadline(message: types.message, state: FSMContext):
     user_id = message.from_user.id
+    
+    task_id = None
+    async with state.proxy() as data:
+        task_id = data['task_id']
     
     while True:
         deadline = message.text
@@ -132,6 +132,11 @@ async def save_deadline(message: types.message, state: FSMContext):
 @dp.message_handler(state= state_baza.frequency)
 async def save_frequency(message: types.message, state: FSMContext):
     user_id = message.from_user.id
+    
+    task_id = None
+    async with state.proxy() as data:
+        task_id = data['task_id']
+    
     while True:
         frequency = message.text
         try:
