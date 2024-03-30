@@ -30,13 +30,10 @@ async def start(message:types.Message, state: FSMContext):
     await bot.send_message(message.chat.id, f'Hi {message.chat.full_name}', reply_markup=klava)
 
 
-
 @dp.message_handler(text= '> CREATE <', state='*')
 async def create(message:types.Message, state: FSMContext):
     await bot.send_message(message.chat.id, 'Print name task: ')
     await state_baza.name.set()
-
-
 
 
 @dp.message_handler(text= '>LIST<', state='*')
@@ -58,18 +55,12 @@ async def list_task(message:types.Message, state: FSMContext):
     await bot.send_message(message.chat.id, text_list)
 
 
-
-
 @dp.message_handler(state= state_baza.name)
 async def save_name(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     name = message.text
     
     task_id = 1
-    async with state.proxy() as data:
-        data['task_id'] = task_id
-    
-
     
     if user_id not in baza:
         baza[user_id] = {}
@@ -81,12 +72,14 @@ async def save_name(message: types.message, state: FSMContext):
         else:
             task_id += 1
     
+    async with state.proxy() as data:
+        data['task_id'] = task_id
+    
     baza[user_id][task_id]['name'] = name
     
     await bot.send_message(message.chat.id, f'Name task "{baza[user_id][task_id]['name']}" is saved')
     await state_baza.next()
     await bot.send_message(message.chat.id, 'Print description task: ')
-
 
 
 @dp.message_handler(state= state_baza.description)
@@ -99,6 +92,7 @@ async def save_description(message: types.message, state: FSMContext):
         task_id = data['task_id']
     
     baza[user_id][task_id]['description'] = description
+    
     await bot.send_message(message.chat.id, f'description "{baza[user_id][task_id]['description']}" is saved')
     await state_baza.next()
     await bot.send_message(message.chat.id, 'Print deadline task "YYYY/MM/DD/HH/MM": ')
@@ -123,11 +117,13 @@ async def save_deadline(message: types.message, state: FSMContext):
             return
     
     baza[user_id][task_id]['deadline'] = deadline
+    
     await bot.send_message(message.chat.id, f'deadline "{baza[user_id][task_id]['deadline']}" is saved')
     await state_baza.next()
     await bot.send_message(message.chat.id, 'Print the frequency of notifications in seconds: ')
-    
-    
+
+
+
 @dp.message_handler(state= state_baza.frequency)
 async def save_frequency(message: types.message, state: FSMContext):
     user_id = message.from_user.id
@@ -146,8 +142,8 @@ async def save_frequency(message: types.message, state: FSMContext):
             await state_baza.frequency.set()
             return
     
-    
     baza[user_id][task_id]['frequency'] = frequency
+    
     await bot.send_message(message.chat.id, f'frequency "{baza[user_id][task_id]['frequency']}" is saved')
     await state.finish()
 
