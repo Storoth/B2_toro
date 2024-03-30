@@ -1,4 +1,5 @@
 
+
 from aiogram import Dispatcher, Bot, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
@@ -23,6 +24,11 @@ class state_baza(StatesGroup):
     deadline = State()
     frequency = State()
 
+class state_delete(StatesGroup):
+    state_1 = State()
+    state_2 = State()
+    state_3 = State()
+
 
 @dp.message_handler(commands= ['start'], state='*')
 async def start(message:types.Message, state: FSMContext):
@@ -44,15 +50,65 @@ async def list_task(message:types.Message, state: FSMContext):
     
     for task_id, task_data in baza[user_id].items():
         text_list += f'''
-        TASK {task_id}:
-        name = {task_data['name']}
-        description = {task_data['description']}
-        deadline = {task_data['deadline']}
-        frequency = {task_data['frequency']}
-        \n
-        '''
+TASK {task_id}:
+name = {task_data['name']}
+description = {task_data['description']}
+deadline = {task_data['deadline']}
+frequency = {task_data['frequency']}
+'''
     
     await bot.send_message(message.chat.id, text_list)
+
+@dp.message_handler(text= '>HELP<', state='*')
+async def help(message:types.Message, state: FSMContext):
+    await bot.send_message(message.chat.id, 'Fuck you. God will help you.')
+
+
+
+
+@dp.message_handler(text= '>DELETE<', state='*')
+async def delete(message:types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    
+    text_list = "Which task do you want to delete?\n"
+    
+    for task_id, task_data in baza[user_id].items():
+        text_list += f'''
+TASK {task_id}:
+name = {task_data['name']}
+'''
+
+    await bot.send_message(message.chat.id, text_list)
+    await state_delete.state_1.set()
+
+
+@dp.message_handler(state= state_delete.state_1)
+async def delete_1(message: types.message, state: FSMContext):
+    user_id = message.from_user.id
+    task = message.text
+    
+    while True:
+        task = message.text
+        try:
+            task = int(message.text)
+            break
+        except ValueError:
+            await bot.send_message(message.chat.id, 'Print the task id: ')
+            await state_delete.state_1.set()
+            return
+    
+    while True:
+        task = message.text
+        if task in baza[user_id].items():
+            await bot.send_message(message.chat.id, '1233244523463457367')
+            break
+        else:
+            await bot.send_message(message.chat.id, 'Print the task id: ')
+            await state_delete.state_1.set()
+            return
+    
+    
+    await state_delete.state_2.set()
 
 
 @dp.message_handler(state= state_baza.name)
@@ -93,7 +149,7 @@ async def save_description(message: types.message, state: FSMContext):
     
     baza[user_id][task_id]['description'] = description
     
-    await bot.send_message(message.chat.id, f'description "{baza[user_id][task_id]['description']}" is saved')
+    await bot.send_message(message.chat.id, f'Description "{baza[user_id][task_id]['description']}" is saved')
     await state_baza.next()
     await bot.send_message(message.chat.id, 'Print deadline task "YYYY/MM/DD/HH/MM": ')
 
@@ -118,10 +174,9 @@ async def save_deadline(message: types.message, state: FSMContext):
     
     baza[user_id][task_id]['deadline'] = deadline
     
-    await bot.send_message(message.chat.id, f'deadline "{baza[user_id][task_id]['deadline']}" is saved')
+    await bot.send_message(message.chat.id, f'Deadline "{baza[user_id][task_id]['deadline']}" is saved')
     await state_baza.next()
     await bot.send_message(message.chat.id, 'Print the frequency of notifications in seconds: ')
-
 
 
 @dp.message_handler(state= state_baza.frequency)
@@ -144,7 +199,7 @@ async def save_frequency(message: types.message, state: FSMContext):
     
     baza[user_id][task_id]['frequency'] = frequency
     
-    await bot.send_message(message.chat.id, f'frequency "{baza[user_id][task_id]['frequency']}" is saved')
+    await bot.send_message(message.chat.id, f'Frequency "{baza[user_id][task_id]['frequency']}" is saved')
     await state.finish()
 
 
