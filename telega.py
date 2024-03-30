@@ -28,9 +28,7 @@ class state_baza(StatesGroup):
 async def start(message:types.Message, state: FSMContext):
     await state.finish()
     await bot.send_message(message.chat.id, f'Hi {message.chat.full_name}', reply_markup=klava)
-    task_id = 1
-    async with state.proxy() as data:
-        data['task_id'] = task_id
+
 
 
 @dp.message_handler(text= '> CREATE <', state='*')
@@ -67,9 +65,10 @@ async def save_name(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     name = message.text
     
-    task_id = None
+    task_id = 1
     async with state.proxy() as data:
-        task_id = data['task_id']
+        data['task_id'] = task_id
+    
 
     
     if user_id not in baza:
@@ -95,7 +94,7 @@ async def save_description(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     description = message.text
     
-    task_id = None
+    task_id = 0
     async with state.proxy() as data:
         task_id = data['task_id']
     
@@ -109,7 +108,7 @@ async def save_description(message: types.message, state: FSMContext):
 async def save_deadline(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     
-    task_id = None
+    task_id = 0
     async with state.proxy() as data:
         task_id = data['task_id']
     
@@ -133,7 +132,7 @@ async def save_deadline(message: types.message, state: FSMContext):
 async def save_frequency(message: types.message, state: FSMContext):
     user_id = message.from_user.id
     
-    task_id = None
+    task_id = 0
     async with state.proxy() as data:
         task_id = data['task_id']
     
