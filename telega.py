@@ -64,8 +64,6 @@ async def help(message:types.Message, state: FSMContext):
     await bot.send_message(message.chat.id, 'Fuck you. God will help you.')
 
 
-
-
 @dp.message_handler(text= '>DELETE<', state='*')
 async def delete(message:types.Message, state: FSMContext):
     user_id = message.from_user.id
@@ -74,7 +72,7 @@ async def delete(message:types.Message, state: FSMContext):
     
     for task_id, task_data in baza[user_id].items():
         text_list += f'''
-TASK {task_id}:
+TASK /{task_id}:
 name = {task_data['name']}
 '''
 
@@ -85,28 +83,15 @@ name = {task_data['name']}
 @dp.message_handler(state= state_delete.state_1)
 async def delete_1(message: types.message, state: FSMContext):
     user_id = message.from_user.id
-    task = message.text
+    task_id = message.text.replace('/', '')
     
-    while True:
-        task = message.text
-        try:
-            task = int(message.text)
-            break
-        except ValueError:
-            await bot.send_message(message.chat.id, 'Print the task id: ')
-            await state_delete.state_1.set()
-            return
-    
-    while True:
-        task = message.text
-        if task in baza[user_id].items():
-            await bot.send_message(message.chat.id, '1233244523463457367')
-            break
-        else:
-            await bot.send_message(message.chat.id, 'Print the task id: ')
-            await state_delete.state_1.set()
-            return
-    
+    if task_id.isdigit() and int(task_id) in baza[user_id]:
+        del baza[user_id][int(task_id)]
+        await bot.send_message(message.chat.id, 'xxxx')
+    else:
+        await bot.send_message(message.chat.id, 'напиши блять айди задачи: ')
+        await state_delete.state_1.set()
+        return
     
     await state_delete.state_2.set()
 
