@@ -27,7 +27,6 @@ class state_baza(StatesGroup):
 class state_delete(StatesGroup):
     state_1 = State()
     state_2 = State()
-    state_3 = State()
 
 
 @dp.message_handler(commands= ['start'], state='*')
