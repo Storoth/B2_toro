@@ -41,22 +41,27 @@ async def create(message:types.Message, state: FSMContext):
     await state_baza.name.set()
 
 
-@dp.message_handler(text= '>LIST<', state='*')
-async def list_task(message:types.Message, state: FSMContext):
+@dp.message_handler(text='>LIST<', state='*')
+async def list_task(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
-    
+
     text_list = "TASK LIST:\n"
-    
+
+    if baza.get(user_id) is None:
+        text_list = "You don't have any tasks"
+        await bot.send_message(message.chat.id, text_list)
+        return
+
     for task_id, task_data in baza[user_id].items():
         text_list += f'''
-TASK {task_id}:
-name = {task_data['name']}
-description = {task_data['description']}
-deadline = {task_data['deadline']}
-frequency = {task_data['frequency']}
-'''
-    
+    TASK {task_id}:
+    name = {task_data['name']}
+    description = {task_data['description']}
+    deadline = {task_data['deadline']}
+    frequency = {task_data['frequency']}
+    '''
     await bot.send_message(message.chat.id, text_list)
+
 
 @dp.message_handler(text= '>HELP<', state='*')
 async def help(message:types.Message, state: FSMContext):
@@ -69,6 +74,10 @@ async def delete(message:types.Message, state: FSMContext):
     
     text_list = "Which task do you want to delete?\n"
     
+    if baza.get(user_id) is None:
+        await bot.send_message(message.chat.id, "You don't have any tasks")
+        return
+
     for task_id, task_data in baza[user_id].items():
         text_list += f'''
 TASK /{task_id}:
@@ -86,9 +95,9 @@ async def delete_1(message: types.message, state: FSMContext):
     
     if task_id.isdigit() and int(task_id) in baza[user_id]:
         del baza[user_id][int(task_id)]
-        await bot.send_message(message.chat.id, 'xxxx')
+        await bot.send_message(message.chat.id, 'The task has been deleted')
     else:
-        await bot.send_message(message.chat.id, 'напиши блять айди задачи: ')
+        await bot.send_message(message.chat.id, 'Write the task id: ')
         await state_delete.state_1.set()
         return
     
@@ -188,7 +197,8 @@ async def save_frequency(message: types.message, state: FSMContext):
 
 
 
-
+async def notif(chat_id):
+    await bot.send_message(chat_id, 'уведомление')
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
